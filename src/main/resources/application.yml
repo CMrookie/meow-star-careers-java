@@ -1,0 +1,47 @@
+## Spring Boot 配置：所有业务配置来自环境变量（.env 由 DotenvLoader 载入），与 Rust 版同名同义。
+server:
+  address: ${SERVER_HOST:127.0.0.1}
+  port: ${SERVER_PORT:8080}
+  error:
+    whitelabel:
+      enabled: false
+
+spring:
+  application:
+    name: meow-star-careers
+  # 数据源由 DbConfig 依据 DATABASE_URL 手工构建（postgres://user:pass@host:port/db）
+  main:
+    banner-mode: off
+  mvc:
+    # 未匹配路由交给 NoHandlerFoundException，从而返回统一 404 JSON
+    throw-exception-if-no-handler-found: true
+  # 静态资源映射保持开启：Swagger UI 由 webjar 静态资源提供（/swagger-ui/）
+  threads:
+    virtual:
+      enabled: true
+
+logging:
+  level:
+    root: info
+    com.meowstar.careers: info
+  pattern:
+    console: "%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} %-5level [%thread] [%X{requestId:-}] %logger{36} - %msg%n"
+
+app:
+  # 请求体上限 1 MiB（与 Rust 版 web::JsonConfig limit 一致）
+  max-request-bytes: 1048576
+  # 登录失败限流：窗口内失败次数上限 / 窗口秒数 / 冻结秒数
+  login-max-failures: 5
+  login-window-seconds: 900
+  login-block-seconds: 900
+
+springdoc:
+  api-docs:
+    # 与 Rust 版路径一致：规范 JSON 直接由该端点提供（GET /api-docs/openapi.json）
+    path: /api-docs/openapi.json
+  swagger-ui:
+    path: /swagger-ui.html
+    url: /api-docs/openapi.json
+    disable-swagger-default-url: true
+    operations-sorter: alpha
+    tags-sorter: alpha
